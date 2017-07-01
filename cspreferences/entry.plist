@@ -1,0 +1,10 @@
+{
+  entry = {
+	bundle = CSPreferences;
+	cell = PSLinkCell;
+	detail = CSPListController;
+	icon = icon.png;
+	isController = 1;
+	label = CSPreferences;
+    };
+}
