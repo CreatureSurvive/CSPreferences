@@ -5,7 +5,7 @@
 @Project: motuumLS
 @Filename: Root.plist
 @Last modified by:   creaturesurvive
-@Last modified time: 01-07-2017 10:57:27
+@Last modified time: 01-07-2017 5:32:34
 @Copyright: Copyright © 2014-2017 CreatureSurvive
 -->
 
@@ -26,21 +26,6 @@
 			<string>Enabled</string>
 			<key>key</key>
 			<string>enabled</string>
-			<key>default</key>
-			<false/>
-			<key>PostNotification</key>
-			<string>com.creaturecoding.cspreferences.prefschanged</string>
-			<key>defaults</key>
-			<string>com.creaturecoding.cspreferences</string>
-		</dict>
-
-		<dict>
-			<key>cell</key>
-			<string>PSSwitchCell</string>
-			<key>label</key>
-			<string>switch</string>
-			<key>key</key>
-			<string>setting1</string>
 			<key>default</key>
 			<false/>
 			<key>PostNotification</key>
@@ -95,6 +80,71 @@
 			<string>setting3</string>
 			<key>PostNotification</key>
 			<string>com.creaturecoding.cspreferences.prefschanged</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>defaults</key>
+			<string>com.creaturesurvive.cspreferences</string>
+			<key>default</key>
+			<string>Give It A Try</string>
+			<key>detail</key>
+			<string>PSDetailController</string>
+			<key>key</key>
+			<string>setting4</string>
+			<key>label</key>
+			<string></string>
+			<key>placeholder</key>
+			<string>Give it a try.</string>
+			<key>PostNotification</key>
+			<string>com.creaturecoding.cspreferences.prefschanged</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSLinkListCell</string>
+			<key>detail</key>
+			<string>CSListItemsController</string>
+			<key>label</key>
+			<string>A List</string>
+			<key>key</key>
+			<string>setting5</string>
+			<key>default</key>
+			<string>selection 1</string>
+			<key>validTitles</key>
+				<array>
+					<string>selection 0</string>
+					<string>selection 1</string>
+					<string>selection 2</string>
+					<string>selection 3</string>
+					<string>selection 4</string>
+					<string>selection 5</string>
+				</array>
+			<key>validValues</key>
+				<array>
+					<string>selection 0</string>
+					<string>selection 1</string>
+					<string>selection 2</string>
+					<string>selection 3</string>
+					<string>selection 4</string>
+					<string>selection 5</string>
+				</array>
+			<key>PostNotification</key>
+			<string>com.creaturesurvive.motuumls.prefschanged</string>
+			<key>defaults</key>
+			<string>com.creaturesurvive.motuumls</string>
+		</dict>
+
+		<dict>
+			<key>action</key>
+			<string>github</string>
+			<key>cell</key>
+			<string>PSButtonCell</string>
+			<key>icon</key>
+			<string></string>
+			<key>label</key>
+			<string>A Link</string>
 		</dict>
 	</array>
 </dict>

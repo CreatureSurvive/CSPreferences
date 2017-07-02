@@ -5,7 +5,7 @@
  * @Project: motuumLS
  * @Filename: Tweak.xm
  * @Last modified by:   creaturesurvive
- * @Last modified time: 01-07-2017 4:26:05
+ * @Last modified time: 01-07-2017 5:12:29
  * @Copyright: Copyright © 2014-2017 CreatureSurvive
  */
 
@@ -32,9 +32,6 @@ static void LoadSettings(){
         setting2 = preferences[@"setting2"] ? [preferences[@"setting2"] intValue] : 0;
         setting3 = preferences[@"setting3"] ? [preferences[@"setting3"] intValue] : 0;
     }
-
-    // [preferences release];
-    HBLogInfo(@"enabled : %@ | setting1 : %@ | setting2 : %@ | setting3 : %@", @(enabled).stringValue, @(setting1).stringValue, @(setting2).stringValue, @(setting3).stringValue);
 }
 
 static void TweakReceivedNotification(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo){

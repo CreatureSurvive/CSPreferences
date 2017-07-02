@@ -1,7 +1,17 @@
+# @Author: Dana Buehre <creaturesurvive>
+# @Date:   01-07-2017 10:49:52
+# @Email:  dbuehre@me.com
+# @Project: motuumLS
+# @Filename: Makefile
+# @Last modified by:   creaturesurvive
+# @Last modified time: 01-07-2017 5:47:23
+# @Copyright: Copyright © 2014-2017 CreatureSurvive
+
+
 include $(THEOS)/makefiles/common.mk
 
 BUNDLE_NAME = CSPreferences
-CSPreferences_FILES = CSPListController.m
+CSPreferences_FILES = $(wildcard *.m)
 CSPreferences_INSTALL_PATH = /Library/PreferenceBundles
 CSPreferences_FRAMEWORKS = UIKit
 CSPreferences_PRIVATE_FRAMEWORKS = Preferences

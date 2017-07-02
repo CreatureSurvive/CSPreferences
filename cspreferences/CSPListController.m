@@ -5,7 +5,7 @@
  * @Project: motuumLS
  * @Filename: CSPListController.m
  * @Last modified by:   creaturesurvive
- * @Last modified time: 01-07-2017 4:18:11
+ * @Last modified time: 01-07-2017 8:30:03
  * @Copyright: Copyright © 2014-2017 CreatureSurvive
  */
 
@@ -58,6 +58,7 @@
         // set specific cell colors
         [UISwitch appearanceWhenContainedInInstancesOfClasses:@[[self.class class]]].onTintColor = _accentTintColor;
         [UITableView appearanceWhenContainedInInstancesOfClasses:@[[self.class class]]].tintColor = _accentTintColor;
+        [UITextField appearanceWhenContainedInInstancesOfClasses:@[[self.class class]]].textColor = _accentTintColor;
         [UISegmentedControl appearanceWhenContainedInInstancesOfClasses:@[[self.class class]]].tintColor = _accentTintColor;
 
         // set the view tint
@@ -111,6 +112,7 @@
     [cell.textLabel setAdjustsFontSizeToFitWidth:YES];
     [cell.detailTextLabel setAdjustsFontSizeToFitWidth:YES];
     cell.textLabel.textColor = _accentTintColor;
+
     return cell;
 }
 
@@ -183,7 +185,7 @@
 - (void)respring {
     UIAlertAction *cancelAction, *okAction;
     UIAlertController *alertController;
-    alertController = [UIAlertController alertControllerWithTitle:@"FastDel"
+    alertController = [UIAlertController alertControllerWithTitle:@"CSPreferences"
                                                           message:@"Are you sure you want to respring?"
                                                    preferredStyle:UIAlertControllerStyleActionSheet];
 
@@ -210,12 +212,12 @@
 
 // email action
 - (void)contact {
-    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"mailto:support@creaturecoding.com?subject=FastDel%20v0.3"]];
+    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"mailto:support@creaturecoding.com?subject=CSPreferences%20v0.0.1"]];
 }
 
 // launch github
 - (void)github {
-    [self openURLInBrowser:@"https://github.com/CreatureSurvive/FastDel"];
+    [self openURLInBrowser:@"https://github.com/CreatureSurvive/CSPreferences"];
 }
 
 // launch paypal

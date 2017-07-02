@@ -4,7 +4,7 @@
 # @Project: motuumLS
 # @Filename: Makefile
 # @Last modified by:   creaturesurvive
-# @Last modified time: 01-07-2017 4:27:18
+# @Last modified time: 01-07-2017 5:13:37
 # @Copyright: Copyright © 2014-2017 CreatureSurvive
 
 
@@ -19,7 +19,7 @@ FINALPACKAGE = 0
 include $(THEOS)/makefiles/common.mk
 
 TWEAK_NAME = CSPreferencesDemo
-#CSPreferencesDemo_FILES = Tweak.xm
+# CSPreferencesDemo_FILES = Tweak.xm
 ADDITIONAL_OBJCFLAGS = -fobjc-arc
 
 include $(THEOS_MAKE_PATH)/tweak.mk
