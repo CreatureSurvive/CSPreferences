@@ -5,7 +5,7 @@
  * @Project: motuumLS
  * @Filename: CSPListController.h
  * @Last modified by:   creaturesurvive
- * @Last modified time: 01-07-2017 6:03:05
+ * @Last modified time: 02-07-2017 7:17:56
  * @Copyright: Copyright © 2014-2017 CreatureSurvive
  */
 
@@ -13,8 +13,5 @@
 #include <spawn.h>
 #include "CSPCommon.h"
 
-@interface CSPListController : PSListController <UITableViewDelegate>{
-    NSMutableDictionary *_settings;
-    UIColor *_prefsTintColor;
-}
+@interface CSPListController : PSListController <UITableViewDelegate>
 @end
