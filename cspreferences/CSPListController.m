@@ -5,17 +5,19 @@
  * @Project: motuumLS
  * @Filename: CSPListController.m
  * @Last modified by:   creaturesurvive
- * @Last modified time: 02-07-2017 7:22:06
+ * @Last modified time: 03-07-2017 1:08:09
  * @Copyright: Copyright © 2014-2017 CreatureSurvive
  */
 
 
 #include "CSPListController.h"
 
+
 @implementation CSPListController {
 
     NSMutableDictionary *_settings;
     NSMutableArray *_disabledCells;
+    NSArray *_toggleGroups;
 }
 
 #pragma mark Initialize
@@ -24,6 +26,8 @@
     if ((self = [super init]) != nil) {
         _settings = [NSMutableDictionary dictionaryWithContentsOfFile:_plistfile] ? : [NSMutableDictionary dictionary];
         _disabledCells = [NSMutableArray array];
+        _toggleGroups = @[@"enabled",
+                          @"enabled1"];
     }
 
     return self;
@@ -65,7 +69,7 @@
         [UITableView appearanceWhenContainedInInstancesOfClasses:@[[self.class class]]].tintColor = _accentTintColor;
         [UITextField appearanceWhenContainedInInstancesOfClasses:@[[self.class class]]].textColor = _accentTintColor;
         [UISegmentedControl appearanceWhenContainedInInstancesOfClasses:@[[self.class class]]].tintColor = _accentTintColor;
-
+        [self setSegmentedSliderTrackColor:_accentTintColor];
 
         // set the view tint
         self.view.tintColor = _accentTintColor;
@@ -113,7 +117,7 @@
 #pragma mark PSListController
 // dismiss keyboard when pressing return key
 - (void)_returnKeyPressed:(id)sender {
-    [self endEditing:NO];
+    [self.view endEditing:NO];
 }
 
 #pragma mark UITableView
@@ -170,12 +174,32 @@
     [_settings setObject:value forKey:key];
     [_settings writeToFile:_plistfile atomically:YES];
 
-    [self setCellsEnabled:[value boolValue] forKey:key];
-    [self reload];
+    // [self setCellsEnabled:[value boolValue] forKey:key];
+    // [self reload];
+    [self toggleSpecifiersForSpecifier:specifier enabled:[value boolValue]];
 
     NSString *post = [specifier propertyForKey:@"PostNotification"];
     if (post) {
         CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(), (__bridge CFStringRef)post, NULL, NULL, TRUE);
+    }
+}
+
+- (void)toggleSpecifiersForSpecifier:(PSSpecifier *)specifier enabled:(BOOL)enabled {
+    NSString *key = [specifier propertyForKey:@"key"];
+    if (![_toggleGroups containsObject:key]) {
+        return;
+    }
+
+    for (PSSpecifier *s in [self specifiersInGroup:[self getGroup:nil row:nil ofSpecifier:specifier] - 1]) {
+        CSLog(@"specifier: %@", [s propertyForKey:@"key"]);
+        if ([s isEqual:specifier]) continue;
+        // if (![s isEqual:selector]) {
+        if (enabled) {
+            [self addSpecifier:s animated:YES];
+        } else {
+            [self removeSpecifier:s animated:YES];
+        }
+        // }
     }
 }
 
@@ -186,7 +210,7 @@
     id plistValue = [_settings objectForKey:key];
     if (!plistValue) plistValue = defaultValue;
 
-    [self setCellsEnabled:[plistValue boolValue] forKey:key];
+    // [self setCellsEnabled:[plistValue boolValue] forKey:key];
 
     return plistValue;
 }
