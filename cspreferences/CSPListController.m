@@ -5,20 +5,25 @@
  * @Project: motuumLS
  * @Filename: CSPListController.m
  * @Last modified by:   creaturesurvive
- * @Last modified time: 01-07-2017 8:30:03
+ * @Last modified time: 03-07-2017 1:09:43
  * @Copyright: Copyright © 2014-2017 CreatureSurvive
  */
 
 
 #include "CSPListController.h"
 
-@implementation CSPListController
+@implementation CSPListController {
+
+    NSMutableDictionary *_settings;
+    NSMutableArray *_disabledCells;
+}
 
 #pragma mark Initialize
 // Initialize the settings dictionary
 - (id)init {
     if ((self = [super init]) != nil) {
         _settings = [NSMutableDictionary dictionaryWithContentsOfFile:_plistfile] ? : [NSMutableDictionary dictionary];
+        _disabledCells = [NSMutableArray array];
     }
 
     return self;
@@ -36,8 +41,8 @@
 #pragma mark Load View
 
 // tint the view after it loads
-- (void)viewDidLoad {
-    [super viewDidLoad];
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
     [self setTintEnabled:YES];
     [self setupHeader];
 }
@@ -55,11 +60,12 @@
         self.navigationController.navigationController.navigationBar.tintColor = _accentTintColor;
         self.navigationController.navigationController.navigationBar.titleTextAttributes = @{NSForegroundColorAttributeName : _accentTintColor};
 
-        // set specific cell colors
+        // set cell control colors
         [UISwitch appearanceWhenContainedInInstancesOfClasses:@[[self.class class]]].onTintColor = _accentTintColor;
         [UITableView appearanceWhenContainedInInstancesOfClasses:@[[self.class class]]].tintColor = _accentTintColor;
         [UITextField appearanceWhenContainedInInstancesOfClasses:@[[self.class class]]].textColor = _accentTintColor;
         [UISegmentedControl appearanceWhenContainedInInstancesOfClasses:@[[self.class class]]].tintColor = _accentTintColor;
+
 
         // set the view tint
         self.view.tintColor = _accentTintColor;
@@ -104,6 +110,12 @@
     self.table.tableHeaderView = header;
 }
 
+#pragma mark PSListController
+// dismiss keyboard when pressing return key
+- (void)_returnKeyPressed:(id)sender {
+    [self.view endEditing:NO];
+}
+
 #pragma mark UITableView
 
 // Adjust labels when loading the cell
@@ -123,6 +135,13 @@
         cell.userInteractionEnabled = enabled;
         cell.textLabel.enabled = enabled;
         cell.detailTextLabel.enabled = enabled;
+        cell.hidden = !enabled;
+
+        if (!enabled) {
+            [_disabledCells addObject:indexPath];
+        } else {
+            [_disabledCells removeObject:indexPath];
+        }
 
         if ([cell isKindOfClass:[PSControlTableCell class]]) {
             PSControlTableCell *controlCell = (PSControlTableCell *)cell;
@@ -133,10 +152,13 @@
     }
 }
 
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    return [_disabledCells containsObject:indexPath] ? 0.0f : 44;
+}
+
 // dismiss keyboard when scrolling begins
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
     [self.view endEditing:NO];
-
 }
 
 #pragma mark Preferences
@@ -149,6 +171,7 @@
     [_settings writeToFile:_plistfile atomically:YES];
 
     [self setCellsEnabled:[value boolValue] forKey:key];
+    [self reload];
 
     NSString *post = [specifier propertyForKey:@"PostNotification"];
     if (post) {
@@ -170,14 +193,19 @@
 
 // enable/disable cells
 - (void)setCellsEnabled:(BOOL)enabled forKey:(NSString *)key {
-    // if ([key isEqualToString:@"enabled"]) {
-    //     [self setCellForRowAtIndexPath:[NSIndexPath indexPathForRow:1 inSection:0] enabled:enabled];
-    //     [self setCellForRowAtIndexPath:[NSIndexPath indexPathForRow:2 inSection:0] enabled:enabled];
-    //     [self setCellForRowAtIndexPath:[NSIndexPath indexPathForRow:3 inSection:0] enabled:enabled];
-    //     [self setCellForRowAtIndexPath:[NSIndexPath indexPathForRow:4 inSection:0] enabled:enabled];
-    //     [self setCellForRowAtIndexPath:[NSIndexPath indexPathForRow:5 inSection:0] enabled:enabled];
-    //     [self setCellForRowAtIndexPath:[NSIndexPath indexPathForRow:6 inSection:0] enabled:enabled];
-    // }
+    if ([key isEqualToString:@"enabled"]) {
+        [self setCellForRowAtIndexPath:[NSIndexPath indexPathForRow:1 inSection:0] enabled:enabled];
+        [self setCellForRowAtIndexPath:[NSIndexPath indexPathForRow:2 inSection:0] enabled:enabled];
+        [self setCellForRowAtIndexPath:[NSIndexPath indexPathForRow:3 inSection:0] enabled:enabled];
+        [self setCellForRowAtIndexPath:[NSIndexPath indexPathForRow:4 inSection:0] enabled:enabled];
+        [self setCellForRowAtIndexPath:[NSIndexPath indexPathForRow:5 inSection:0] enabled:enabled];
+    } else if ([key isEqualToString:@"enabled1"]) {
+        [self setCellForRowAtIndexPath:[NSIndexPath indexPathForRow:1 inSection:1] enabled:enabled];
+        [self setCellForRowAtIndexPath:[NSIndexPath indexPathForRow:2 inSection:1] enabled:enabled];
+        [self setCellForRowAtIndexPath:[NSIndexPath indexPathForRow:3 inSection:1] enabled:enabled];
+        [self setCellForRowAtIndexPath:[NSIndexPath indexPathForRow:4 inSection:1] enabled:enabled];
+        [self setCellForRowAtIndexPath:[NSIndexPath indexPathForRow:5 inSection:1] enabled:enabled];
+    }
 }
 
 #pragma mark PSSpecifier Actions
@@ -235,6 +263,8 @@
 // opens the specified url in SFSafariViewController
 - (void)openURLInBrowser:(NSString *)url {
     SFSafariViewController *safari = [[SFSafariViewController alloc] initWithURL:[NSURL URLWithString:url] entersReaderIfAvailable:NO];
+    // using this method for coloring because it supports ios 9 as well
+    safari.view.tintColor = _accentTintColor;
     [self presentViewController:safari animated:YES completion:nil];
 }
 
