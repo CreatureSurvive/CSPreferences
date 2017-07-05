@@ -5,17 +5,19 @@
  * @Project: motuumLS
  * @Filename: CSPListController.m
  * @Last modified by:   creaturesurvive
- * @Last modified time: 03-07-2017 1:09:43
+ * @Last modified time: 05-07-2017 12:34:54
  * @Copyright: Copyright © 2014-2017 CreatureSurvive
  */
 
 
 #include "CSPListController.h"
 
+
 @implementation CSPListController {
 
     NSMutableDictionary *_settings;
     NSMutableArray *_disabledCells;
+    NSArray *_toggleGroups;
 }
 
 #pragma mark Initialize
@@ -24,6 +26,8 @@
     if ((self = [super init]) != nil) {
         _settings = [NSMutableDictionary dictionaryWithContentsOfFile:_plistfile] ? : [NSMutableDictionary dictionary];
         _disabledCells = [NSMutableArray array];
+        _toggleGroups = @[@"enabled",
+                          @"enabled1"];
     }
 
     return self;
@@ -65,7 +69,7 @@
         [UITableView appearanceWhenContainedInInstancesOfClasses:@[[self.class class]]].tintColor = _accentTintColor;
         [UITextField appearanceWhenContainedInInstancesOfClasses:@[[self.class class]]].textColor = _accentTintColor;
         [UISegmentedControl appearanceWhenContainedInInstancesOfClasses:@[[self.class class]]].tintColor = _accentTintColor;
-
+        [self setSegmentedSliderTrackColor:_accentTintColor];
 
         // set the view tint
         self.view.tintColor = _accentTintColor;
@@ -137,12 +141,6 @@
         cell.detailTextLabel.enabled = enabled;
         cell.hidden = !enabled;
 
-        if (!enabled) {
-            [_disabledCells addObject:indexPath];
-        } else {
-            [_disabledCells removeObject:indexPath];
-        }
-
         if ([cell isKindOfClass:[PSControlTableCell class]]) {
             PSControlTableCell *controlCell = (PSControlTableCell *)cell;
             if (controlCell.control) {
@@ -150,10 +148,6 @@
             }
         }
     }
-}
-
-- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return [_disabledCells containsObject:indexPath] ? 0.0f : 44;
 }
 
 // dismiss keyboard when scrolling begins
@@ -165,13 +159,12 @@
 
 // writes the preferences to disk after setting additionally posts a notification
 - (void)setPreferenceValue:(id)value specifier:(PSSpecifier *)specifier {
-    NSString *key = [specifier propertyForKey:@"key"];
+    NSString *key = [specifier propertyForKey:PSKeyNameKey];
     _settings = ([NSMutableDictionary dictionaryWithContentsOfFile:_plistfile] ? : [NSMutableDictionary dictionary]);
-    [_settings setObject:value forKey:key];
+    [_settings setObject:value forKey:[specifier propertyForKey:PSKeyNameKey]];
     [_settings writeToFile:_plistfile atomically:YES];
 
-    [self setCellsEnabled:[value boolValue] forKey:key];
-    [self reload];
+    [self setSpecifiersInGroupOfSpecifier:specifier enabled:[value boolValue] animated:YES];
 
     NSString *post = [specifier propertyForKey:@"PostNotification"];
     if (post) {
@@ -181,37 +174,20 @@
 
 // returns the settings from disk when loading else reads default
 - (id)readPreferenceValue:(PSSpecifier *)specifier {
-    NSString *key = [specifier propertyForKey:@"key"];
-    id defaultValue = [specifier propertyForKey:@"default"];
+    NSString *key = [specifier propertyForKey:PSKeyNameKey];
+    id defaultValue = [specifier propertyForKey:PSDefaultValueKey];
     id plistValue = [_settings objectForKey:key];
     if (!plistValue) plistValue = defaultValue;
 
-    [self setCellsEnabled:[plistValue boolValue] forKey:key];
+    [self setSpecifiersInGroupOfSpecifier:specifier enabled:[plistValue boolValue] animated:NO];
 
     return plistValue;
-}
-
-// enable/disable cells
-- (void)setCellsEnabled:(BOOL)enabled forKey:(NSString *)key {
-    if ([key isEqualToString:@"enabled"]) {
-        [self setCellForRowAtIndexPath:[NSIndexPath indexPathForRow:1 inSection:0] enabled:enabled];
-        [self setCellForRowAtIndexPath:[NSIndexPath indexPathForRow:2 inSection:0] enabled:enabled];
-        [self setCellForRowAtIndexPath:[NSIndexPath indexPathForRow:3 inSection:0] enabled:enabled];
-        [self setCellForRowAtIndexPath:[NSIndexPath indexPathForRow:4 inSection:0] enabled:enabled];
-        [self setCellForRowAtIndexPath:[NSIndexPath indexPathForRow:5 inSection:0] enabled:enabled];
-    } else if ([key isEqualToString:@"enabled1"]) {
-        [self setCellForRowAtIndexPath:[NSIndexPath indexPathForRow:1 inSection:1] enabled:enabled];
-        [self setCellForRowAtIndexPath:[NSIndexPath indexPathForRow:2 inSection:1] enabled:enabled];
-        [self setCellForRowAtIndexPath:[NSIndexPath indexPathForRow:3 inSection:1] enabled:enabled];
-        [self setCellForRowAtIndexPath:[NSIndexPath indexPathForRow:4 inSection:1] enabled:enabled];
-        [self setCellForRowAtIndexPath:[NSIndexPath indexPathForRow:5 inSection:1] enabled:enabled];
-    }
 }
 
 #pragma mark PSSpecifier Actions
 // respring action
 - (void)respring {
-    UIAlertAction *cancelAction, *okAction;
+    UIAlertAction *cancelAction, *confirmAction;
     UIAlertController *alertController;
     alertController = [UIAlertController alertControllerWithTitle:@"CSPreferences"
                                                           message:@"Are you sure you want to respring?"
@@ -222,10 +198,10 @@
                               style:UIAlertActionStyleCancel
                             handler:nil];
 
-    okAction = [UIAlertAction
-                actionWithTitle:@"Respring"
-                          style:UIAlertActionStyleDestructive
-                        handler:^(UIAlertAction *action) {
+    confirmAction = [UIAlertAction
+                     actionWithTitle:@"Respring"
+                               style:UIAlertActionStyleDestructive
+                             handler:^(UIAlertAction *action) {
         pid_t pid;
         int status;
         const char *args[] = {"killall", "SpringBoard", NULL};
@@ -234,7 +210,7 @@
     }];
 
     [alertController addAction:cancelAction];
-    [alertController addAction:okAction];
+    [alertController addAction:confirmAction];
     [self presentViewController:alertController animated:YES completion:nil];
 }
 
@@ -256,6 +232,46 @@
 // launch twitter
 - (void)twitter {
     [self openURLInBrowser:@"https://mobile.twitter.com/creaturesurvive"];
+}
+
+#pragma mark Extentions
+
+// toggles all cells in the the group the given specifier is in
+// does not remove PSGroupCell or the cell of the given specifier
+- (void)setSpecifiersInGroupOfSpecifier:(PSSpecifier *)specifier enabled:(BOOL)enabled animated:(BOOL)animated {
+    NSString *key = [specifier propertyForKey:PSKeyNameKey];
+    if (![_toggleGroups containsObject:key]) return;
+
+    [self applyChanges:^{
+        for (PSSpecifier *currentSpecifier in [self specifiersInGroup:[self indexPathForSpecifier:specifier].section]) {
+            if ([currentSpecifier isEqualToSpecifier:specifier] || currentSpecifier.cellType == PSGroupCell) continue;
+            [self setSpecifier:currentSpecifier enabled:enabled];
+        }
+    } animated:animated];
+}
+
+// sets the height for the specifier when enabled/disabled and updates the cell
+- (void)setSpecifier:(PSSpecifier *)specifier enabled:(BOOL)enabled {
+    [specifier setProperty:@(enabled ? 44 : 0) forKey:PSTableCellHeightKey];
+    [self setCellForRowAtIndexPath:[self indexPathForSpecifier:specifier] enabled:enabled];
+}
+
+// calls setSpecifiers: enabled: on an array of specifiers
+- (void)setSpecifiers:(NSArray *)specifiers enabled:(BOOL)enabled {
+    for (PSSpecifier *specifier in specifiers) {
+        [self setSpecifier:specifier enabled:enabled];
+    }
+}
+
+// returns a block to apply changes either animated or not
+- (void)applyChanges:(void (^)(void))changes animated:(BOOL)animated {
+    if (animated) {
+        [self beginUpdates];
+        changes();
+        [self endUpdates];
+    } else {
+        changes();
+    }
 }
 
 #pragma mark Utility
