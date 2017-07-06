@@ -1,1 +1,13 @@
-{ Filter = { Bundles = ( "com.apple.springboard" ); }; }
+<!--
+@Author: Dana Buehre <creaturesurvive>
+@Date:   01-07-2017 8:48:49
+@Email:  dbuehre@me.com
+@Project: motuumLS
+@Filename: CSPreferencesDemo.plist
+@Last modified by:   creaturesurvive
+@Last modified time: 06-07-2017 3:08:35
+@Copyright: Copyright © 2014-2017 CreatureSurvive
+-->
+
+
+{ Filter = { Bundles = ( "com.apple.pref" ); }; }

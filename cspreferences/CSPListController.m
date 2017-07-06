@@ -5,13 +5,14 @@
  * @Project: motuumLS
  * @Filename: CSPListController.m
  * @Last modified by:   creaturesurvive
- * @Last modified time: 06-07-2017 1:34:06
+ * @Last modified time: 06-07-2017 3:03:40
  * @Copyright: Copyright © 2014-2017 CreatureSurvive
  */
 
 
 #include "CSPListController.h"
 #import "AudioToolbox/AudioToolbox.h"
+#import <UserNotifications/UNUserNotifications.h>
 
 
 @implementation CSPListController {
@@ -197,7 +198,8 @@
             [self setSpecifiers:[group filteredArrayUsingPredicate:filter] enabled:[_settings[key] boolValue]];
         }
         if ([[[self groupSpecifierForGroup:group] propertyForKey:PSIsRadioGroupKey] boolValue]) {
-            CSAlertLog(@"Finally a radio group");
+            // CSAlertLog(@"Finally a radio group");
+            [self sendLocalNotification:@"Say What" andBody:@"A fucking notification"];
 
         }
     } animated:animated];
@@ -322,6 +324,35 @@
 // launch twitter
 - (void)twitter {
     [self openURLInBrowser:@"https://mobile.twitter.com/creaturesurvive"];
+}
+
+#pragma mark Notifications
+
+- (void)sendLocalNotification:(NSString *)title body:(NSString *)body withID:(NSString *)identifier {
+
+    UNMutableNotificationContent *objNotificationContent = [[UNMutableNotificationContent alloc] init];
+
+    objNotificationContent.title = title;
+    objNotificationContent.body = body;
+    objNotificationContent.sound = nil;
+
+    // Set time of notification being triggered
+    UNTimeIntervalNotificationTrigger *trigger = [UNTimeIntervalNotificationTrigger triggerWithTimeInterval:1 repeats:NO];
+
+    UNNotificationRequest *request = [UNNotificationRequest
+                                      requestWithIdentifier:identifier content:objNotificationContent trigger:trigger];
+
+    // Schedule localNotification
+    UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+
+    [center addNotificationRequest:request withCompletionHandler:^(NSError *_Nullable error) {
+        if (error)
+            CSAlertLog(@"error adding notification request: %@", error.localizedDescription);
+    }];
+}
+
+- (void)sendLocalNotification:(NSString *)title andBody:(NSString *)body {
+    [self sendLocalNotification:title body:body withID:[NSString stringWithFormat:@"notif_%f", [[NSDate date] timeIntervalSince1970]]];
 }
 
 @end
