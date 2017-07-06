@@ -5,7 +5,7 @@
  * @Project: motuumLS
  * @Filename: CSPListController.m
  * @Last modified by:   creaturesurvive
- * @Last modified time: 06-07-2017 1:34:06
+ * @Last modified time: 06-07-2017 3:38:17
  * @Copyright: Copyright © 2014-2017 CreatureSurvive
  */
 
@@ -164,7 +164,8 @@
     _settings = ([NSMutableDictionary dictionaryWithContentsOfFile:_plistfile] ? : [NSMutableDictionary dictionary]);
     [_settings setObject:value forKey:key];
     [_settings writeToFile:_plistfile atomically:YES];
-    AudioServicesPlaySystemSound(1521);
+    // haptic feedback when setting a value, currently overlaps with stock toggles
+    // AudioServicesPlaySystemSound(1519);
     [self checkForUpdatesWithSpecifier:specifier animated:YES];
 
     NSString *post = [specifier propertyForKey:@"PostNotification"];
@@ -196,10 +197,9 @@
             NSPredicate *filter = [self specifierFilterWithOptions:@{ @"keys": @[[specifier propertyForKey:PSKeyNameKey]], @"types": @[@(PSGroupCell)] } excludeOptions:YES];
             [self setSpecifiers:[group filteredArrayUsingPredicate:filter] enabled:[_settings[key] boolValue]];
         }
-        if ([[[self groupSpecifierForGroup:group] propertyForKey:PSIsRadioGroupKey] boolValue]) {
-            CSAlertLog(@"Finally a radio group");
-
-        }
+        // if ([[[self groupSpecifierForGroup:group] propertyForKey:PSIsRadioGroupKey] boolValue]) {
+        //     CSAlertLog(@"Finally a radio group");
+        // }
     } animated:animated];
 }
 
