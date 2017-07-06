@@ -5,12 +5,13 @@
  * @Project: motuumLS
  * @Filename: CSPListController.m
  * @Last modified by:   creaturesurvive
- * @Last modified time: 05-07-2017 12:34:54
+ * @Last modified time: 06-07-2017 1:34:06
  * @Copyright: Copyright © 2014-2017 CreatureSurvive
  */
 
 
 #include "CSPListController.h"
+#import "AudioToolbox/AudioToolbox.h"
 
 
 @implementation CSPListController {
@@ -139,7 +140,7 @@
         cell.userInteractionEnabled = enabled;
         cell.textLabel.enabled = enabled;
         cell.detailTextLabel.enabled = enabled;
-        cell.hidden = !enabled;
+        cell.clipsToBounds = YES;
 
         if ([cell isKindOfClass:[PSControlTableCell class]]) {
             PSControlTableCell *controlCell = (PSControlTableCell *)cell;
@@ -161,10 +162,10 @@
 - (void)setPreferenceValue:(id)value specifier:(PSSpecifier *)specifier {
     NSString *key = [specifier propertyForKey:PSKeyNameKey];
     _settings = ([NSMutableDictionary dictionaryWithContentsOfFile:_plistfile] ? : [NSMutableDictionary dictionary]);
-    [_settings setObject:value forKey:[specifier propertyForKey:PSKeyNameKey]];
+    [_settings setObject:value forKey:key];
     [_settings writeToFile:_plistfile atomically:YES];
-
-    [self setSpecifiersInGroupOfSpecifier:specifier enabled:[value boolValue] animated:YES];
+    AudioServicesPlaySystemSound(1521);
+    [self checkForUpdatesWithSpecifier:specifier animated:YES];
 
     NSString *post = [specifier propertyForKey:@"PostNotification"];
     if (post) {
@@ -179,9 +180,98 @@
     id plistValue = [_settings objectForKey:key];
     if (!plistValue) plistValue = defaultValue;
 
-    [self setSpecifiersInGroupOfSpecifier:specifier enabled:[plistValue boolValue] animated:NO];
+    [self checkForUpdatesWithSpecifier:specifier animated:NO];
 
     return plistValue;
+}
+
+#pragma mark Extentions
+// when setting or reading a value we should check if the changed specifier should alter any other settings or UI
+- (void)checkForUpdatesWithSpecifier:(PSSpecifier *)specifier animated:(BOOL)animated {
+    NSString *key = [specifier propertyForKey:PSKeyNameKey];
+    NSArray *group = [self specifiersInGroup:[self indexPathForSpecifier:specifier].section];
+
+    [self applyChanges:^{
+        if ([_toggleGroups containsObject:key]) {
+            NSPredicate *filter = [self specifierFilterWithOptions:@{ @"keys": @[[specifier propertyForKey:PSKeyNameKey]], @"types": @[@(PSGroupCell)] } excludeOptions:YES];
+            [self setSpecifiers:[group filteredArrayUsingPredicate:filter] enabled:[_settings[key] boolValue]];
+        }
+        if ([[[self groupSpecifierForGroup:group] propertyForKey:PSIsRadioGroupKey] boolValue]) {
+            CSAlertLog(@"Finally a radio group");
+
+        }
+    } animated:animated];
+}
+
+// returns an NSPredicate for filtering specifiers based on keys, types, or identifiers
+- (NSPredicate *)specifierFilterWithOptions:(NSDictionary *)options excludeOptions:(BOOL)exclude {
+
+    return [NSPredicate predicateWithBlock:^BOOL (id specifier, NSDictionary *bindings) {
+        // filter out all specifiers of the given type or key
+        if ([options[@"keys"] containsObject:[specifier propertyForKey:PSKeyNameKey]])
+            return !exclude;
+        if ([options[@"types"] containsObject:@([specifier cellType])])
+            return !exclude;
+        return YES;
+    }];
+}
+
+// returns an array of specifiers in the given group with all the given celltypes filtered out
+- (NSArray *)specifiersInGroup:(long long)group excludingTypes:(NSArray *)excluded {
+    NSPredicate *filter = [NSPredicate predicateWithBlock:^BOOL (id specifier, NSDictionary *bindings) {
+        // filter out all specifiers of the given type
+        return ![excluded containsObject:@([specifier cellType])];
+    }];
+    return [[self specifiersInGroup:group] filteredArrayUsingPredicate:filter];
+}
+
+// returns an array of specifiers in the given group with only the given cellTypes
+- (NSArray *)specifiersInGroup:(long long)group explicitTypes:(NSArray *)included {
+    NSPredicate *filter = [NSPredicate predicateWithBlock:^BOOL (id specifier, NSDictionary *bindings) {
+        // filter out all specifiers of the given type
+        return [included containsObject:@([specifier cellType])];
+    }];
+    return [[self specifiersInGroup:group] filteredArrayUsingPredicate:filter];
+}
+
+// sets the height for the specifier when enabled/disabled and updates the cell
+- (void)setSpecifier:(PSSpecifier *)specifier enabled:(BOOL)enabled {
+    [specifier setProperty:@(enabled ? 44 : 0) forKey:PSTableCellHeightKey];
+    [self setCellForRowAtIndexPath:[self indexPathForSpecifier:specifier] enabled:enabled];
+}
+
+// calls setSpecifiers: enabled: on an array of specifiers
+- (void)setSpecifiers:(NSArray *)specifiers enabled:(BOOL)enabled {
+    for (PSSpecifier *specifier in specifiers) {
+        [self setSpecifier:specifier enabled:enabled];
+    }
+}
+
+// returns a block to apply changes either animated or not
+- (void)applyChanges:(void (^)(void))changes animated:(BOOL)animated {
+    if (animated) {
+        [self beginUpdates];
+        changes();
+        [self endUpdates];
+    } else {
+        changes();
+    }
+}
+
+// returns the PSGroupCell specifier for the given group of array of specifiers
+- (PSSpecifier *)groupSpecifierForGroup:(NSArray *)group {
+    NSPredicate *filter = [self specifierFilterWithOptions:@{@"types": @[@(PSGroupCell)] } excludeOptions:NO];
+    return [group filteredArrayUsingPredicate:filter][0];
+}
+
+#pragma mark Utility
+
+// opens the specified url in SFSafariViewController
+- (void)openURLInBrowser:(NSString *)url {
+    SFSafariViewController *safari = [[SFSafariViewController alloc] initWithURL:[NSURL URLWithString:url] entersReaderIfAvailable:NO];
+    // using this method for coloring because it supports ios 9 as well
+    safari.view.tintColor = _accentTintColor;
+    [self presentViewController:safari animated:YES completion:nil];
 }
 
 #pragma mark PSSpecifier Actions
@@ -232,56 +322,6 @@
 // launch twitter
 - (void)twitter {
     [self openURLInBrowser:@"https://mobile.twitter.com/creaturesurvive"];
-}
-
-#pragma mark Extentions
-
-// toggles all cells in the the group the given specifier is in
-// does not remove PSGroupCell or the cell of the given specifier
-- (void)setSpecifiersInGroupOfSpecifier:(PSSpecifier *)specifier enabled:(BOOL)enabled animated:(BOOL)animated {
-    NSString *key = [specifier propertyForKey:PSKeyNameKey];
-    if (![_toggleGroups containsObject:key]) return;
-
-    [self applyChanges:^{
-        for (PSSpecifier *currentSpecifier in [self specifiersInGroup:[self indexPathForSpecifier:specifier].section]) {
-            if ([currentSpecifier isEqualToSpecifier:specifier] || currentSpecifier.cellType == PSGroupCell) continue;
-            [self setSpecifier:currentSpecifier enabled:enabled];
-        }
-    } animated:animated];
-}
-
-// sets the height for the specifier when enabled/disabled and updates the cell
-- (void)setSpecifier:(PSSpecifier *)specifier enabled:(BOOL)enabled {
-    [specifier setProperty:@(enabled ? 44 : 0) forKey:PSTableCellHeightKey];
-    [self setCellForRowAtIndexPath:[self indexPathForSpecifier:specifier] enabled:enabled];
-}
-
-// calls setSpecifiers: enabled: on an array of specifiers
-- (void)setSpecifiers:(NSArray *)specifiers enabled:(BOOL)enabled {
-    for (PSSpecifier *specifier in specifiers) {
-        [self setSpecifier:specifier enabled:enabled];
-    }
-}
-
-// returns a block to apply changes either animated or not
-- (void)applyChanges:(void (^)(void))changes animated:(BOOL)animated {
-    if (animated) {
-        [self beginUpdates];
-        changes();
-        [self endUpdates];
-    } else {
-        changes();
-    }
-}
-
-#pragma mark Utility
-
-// opens the specified url in SFSafariViewController
-- (void)openURLInBrowser:(NSString *)url {
-    SFSafariViewController *safari = [[SFSafariViewController alloc] initWithURL:[NSURL URLWithString:url] entersReaderIfAvailable:NO];
-    // using this method for coloring because it supports ios 9 as well
-    safari.view.tintColor = _accentTintColor;
-    [self presentViewController:safari animated:YES completion:nil];
 }
 
 @end

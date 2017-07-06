@@ -4,7 +4,7 @@
 # @Project: motuumLS
 # @Filename: Makefile
 # @Last modified by:   creaturesurvive
-# @Last modified time: 01-07-2017 5:13:37
+# @Last modified time: 05-07-2017 5:59:56
 # @Copyright: Copyright © 2014-2017 CreatureSurvive
 
 
@@ -26,6 +26,9 @@ include $(THEOS_MAKE_PATH)/tweak.mk
 
 before-stage::
 	find . -name ".DS_Store" -delete
+
+after-install::
+	install.exec "killall -9 Preferences"
 
 SUBPROJECTS += cspreferences
 include $(THEOS_MAKE_PATH)/aggregate.mk

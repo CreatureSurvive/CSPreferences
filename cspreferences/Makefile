@@ -4,7 +4,7 @@
 # @Project: motuumLS
 # @Filename: Makefile
 # @Last modified by:   creaturesurvive
-# @Last modified time: 04-07-2017 6:21:50
+# @Last modified time: 06-07-2017 1:28:21
 # @Copyright: Copyright © 2014-2017 CreatureSurvive
 
 
@@ -14,7 +14,7 @@ BUNDLE_NAME = CSPreferences
 CSPreferences_FILES = $(wildcard *.m)
 CSPreferences_INSTALL_PATH = /Library/PreferenceBundles
 CSPreferences_FRAMEWORKS = UIKit
-CSPreferences_PRIVATE_FRAMEWORKS = Preferences
+CSPreferences_PRIVATE_FRAMEWORKS = Preferences AudioToolbox
 CSPreferences_CFLAGS += -fobjc-arc
 
 include $(THEOS_MAKE_PATH)/bundle.mk

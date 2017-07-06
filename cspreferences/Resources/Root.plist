@@ -5,7 +5,7 @@
 @Project: motuumLS
 @Filename: Root.plist
 @Last modified by:   creaturesurvive
-@Last modified time: 03-07-2017 12:42:04
+@Last modified time: 05-07-2017 1:08:21
 @Copyright: Copyright © 2014-2017 CreatureSurvive
 -->
 
@@ -292,14 +292,57 @@
 		</dict>
 
 		<dict>
-			<key>action</key>
-			<string>testNotification</string>
 			<key>cell</key>
-			<string>PSButtonCell</string>
-			<key>icon</key>
-			<string></string>
+			<string>PSGroupCell</string>
 			<key>label</key>
-			<string>A Link</string>
+			<string>Hopefully a radio group</string>
+			<key>isRadioGroup</key>
+			<true/>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>label</key>
+			<string>Toggle 1</string>
+			<key>key</key>
+			<string>toggle1</string>
+			<key>default</key>
+			<false/>
+			<key>PostNotification</key>
+			<string>com.creaturecoding.cspreferences.prefschanged</string>
+			<key>defaults</key>
+			<string>com.creaturecoding.cspreferences</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>label</key>
+			<string>Toggle 2</string>
+			<key>key</key>
+			<string>toggle2</string>
+			<key>default</key>
+			<false/>
+			<key>PostNotification</key>
+			<string>com.creaturecoding.cspreferences.prefschanged</string>
+			<key>defaults</key>
+			<string>com.creaturecoding.cspreferences</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>label</key>
+			<string>Toggle 2</string>
+			<key>key</key>
+			<string>toggle2</string>
+			<key>default</key>
+			<false/>
+			<key>PostNotification</key>
+			<string>com.creaturecoding.cspreferences.prefschanged</string>
+			<key>defaults</key>
+			<string>com.creaturecoding.cspreferences</string>
 		</dict>
 
 	</array>
