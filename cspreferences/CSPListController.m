@@ -5,7 +5,7 @@
  * @Project: motuumLS
  * @Filename: CSPListController.m
  * @Last modified by:   creaturesurvive
- * @Last modified time: 06-07-2017 3:38:17
+ * @Last modified time: 07-07-2017 1:38:40
  * @Copyright: Copyright © 2014-2017 CreatureSurvive
  */
 
@@ -17,16 +17,16 @@
 @implementation CSPListController {
 
     NSMutableDictionary *_settings;
-    NSMutableArray *_disabledCells;
     NSArray *_toggleGroups;
+    NSArray *_fontNames;
 }
 
 #pragma mark Initialize
 // Initialize the settings dictionary
 - (id)init {
     if ((self = [super init]) != nil) {
+
         _settings = [NSMutableDictionary dictionaryWithContentsOfFile:_plistfile] ? : [NSMutableDictionary dictionary];
-        _disabledCells = [NSMutableArray array];
         _toggleGroups = @[@"enabled",
                           @"enabled1"];
     }
@@ -141,6 +141,8 @@
         cell.textLabel.enabled = enabled;
         cell.detailTextLabel.enabled = enabled;
         cell.clipsToBounds = YES;
+        if ([[self fontNames] containsObject:cell.detailTextLabel.text])
+            cell.detailTextLabel.font = [UIFont fontWithName:cell.detailTextLabel.text size:cell.detailTextLabel.font.pointSize];
 
         if ([cell isKindOfClass:[PSControlTableCell class]]) {
             PSControlTableCell *controlCell = (PSControlTableCell *)cell;
@@ -198,7 +200,9 @@
             [self setSpecifiers:[group filteredArrayUsingPredicate:filter] enabled:[_settings[key] boolValue]];
         }
         // if ([[[self groupSpecifierForGroup:group] propertyForKey:PSIsRadioGroupKey] boolValue]) {
-        //     CSAlertLog(@"Finally a radio group");
+        //     // CSAlertLog(@"Finally a radio group");
+        //     NSPredicate *filter = [self specifierFilterWithOptions:@{@"types": @[@(PSSwitchCell)] } excludeOptions:NO];
+        //     [self setProperty:@(NO) forSpecifiers:[group filteredArrayUsingPredicate:filter]];
         // }
     } animated:animated];
 }
@@ -255,6 +259,12 @@
         [self endUpdates];
     } else {
         changes();
+    }
+}
+
+- (void)setProperty:(id)property forSpecifiers:(NSArray *)specifiers {
+    for (PSSpecifier *specifier in specifiers) {
+        [specifier setProperty:property forKey:PSKeyNameKey];
     }
 }
 
@@ -322,6 +332,22 @@
 // launch twitter
 - (void)twitter {
     [self openURLInBrowser:@"https://mobile.twitter.com/creaturesurvive"];
+}
+
+- (NSArray *)fontNames {
+    if (!_fontNames) {
+        NSMutableArray *names = [NSMutableArray new];
+        [names addObjectsFromArray:@[@".SFUIDisplay-UltraLight", @".SFUIDisplay-Thin", @".SFUIDisplay-Light", @".SFUIDisplay-Regular", @".SFUIDisplay-Medium", @".SFUIDisplay-Semibold", @".SFUIDisplay-Bold", @".SFUIDisplay-Heavy", @".SFUIDisplay-Black"]];
+
+        for (NSString *familyName in [UIFont familyNames]) {
+            for (NSString *fontName in [UIFont fontNamesForFamilyName:familyName]) {
+                [names addObject:fontName];
+            }
+        }
+        _fontNames = [[NSSet setWithArray:names].allObjects sortedArrayUsingSelector:@selector(localizedCaseInsensitiveCompare:)];
+    }
+    CSAlertLog(@"%@", [[_fontNames valueForKey:@"description"] componentsJoinedByString:@"/n"]);
+    return _fontNames;
 }
 
 @end

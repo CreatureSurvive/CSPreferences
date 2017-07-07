@@ -5,7 +5,7 @@
 @Project: motuumLS
 @Filename: Root.plist
 @Last modified by:   creaturesurvive
-@Last modified time: 05-07-2017 1:08:21
+@Last modified time: 07-07-2017 1:26:48
 @Copyright: Copyright © 2014-2017 CreatureSurvive
 -->
 
@@ -138,9 +138,30 @@
 					<string>selection 5</string>
 				</array>
 			<key>PostNotification</key>
-			<string>com.creaturesurvive.motuumls.prefschanged</string>
+			<string>com.creaturecoding.cspreferences.prefschanged</string>
 			<key>defaults</key>
-			<string>com.creaturesurvive.motuumls</string>
+			<string>com.creaturecoding.cspreferences</string>
+		</dict>
+
+		<dict>
+			<key>cell</key>
+			<string>PSLinkListCell</string>
+			<key>detail</key>
+			<string>CSListFontsController</string>
+			<key>label</key>
+			<string>Font Family</string>
+			<key>key</key>
+			<string>setting11</string>
+			<key>default</key>
+			<string>Helvetica Neue</string>
+			<key>titlesDataSource</key>
+			<string>fontNames</string>
+			<key>valuesDataSource</key>
+			<string>fontNames</string>
+			<key>PostNotification</key>
+			<string>com.creaturecoding.cspreferences.prefschanged</string>
+			<key>defaults</key>
+			<string>com.creaturecoding.cspreferences</string>
 		</dict>
 
 		<dict>
@@ -275,9 +296,9 @@
 					<string>selection 5</string>
 				</array>
 			<key>PostNotification</key>
-			<string>com.creaturesurvive.motuumls.prefschanged</string>
+			<string>com.creaturecoding.cspreferences.prefschanged</string>
 			<key>defaults</key>
-			<string>com.creaturesurvive.motuumls</string>
+			<string>com.creaturecoding.cspreferences</string>
 		</dict>
 
 		<dict>
