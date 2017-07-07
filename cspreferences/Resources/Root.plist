@@ -5,7 +5,7 @@
 @Project: motuumLS
 @Filename: Root.plist
 @Last modified by:   creaturesurvive
-@Last modified time: 07-07-2017 1:26:48
+@Last modified time: 07-07-2017 12:16:44
 @Copyright: Copyright © 2014-2017 CreatureSurvive
 -->
 
@@ -310,6 +310,19 @@
 			<string></string>
 			<key>label</key>
 			<string>A Link</string>
+		</dict>
+
+		<dict>
+			<key>action</key>
+			<string>setblah:</string>
+			<key>cell</key>
+			<string>PSButtonCell</string>
+			<key>id</key>
+			<string>Root0</string>
+			<key>icon</key>
+			<string></string>
+			<key>label</key>
+			<string>set blah</string>
 		</dict>
 
 		<dict>

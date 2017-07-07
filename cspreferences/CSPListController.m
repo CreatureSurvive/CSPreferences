@@ -5,7 +5,7 @@
  * @Project: motuumLS
  * @Filename: CSPListController.m
  * @Last modified by:   creaturesurvive
- * @Last modified time: 07-07-2017 1:38:40
+ * @Last modified time: 07-07-2017 1:52:19
  * @Copyright: Copyright © 2014-2017 CreatureSurvive
  */
 
@@ -19,19 +19,40 @@
     NSMutableDictionary *_settings;
     NSArray *_toggleGroups;
     NSArray *_fontNames;
+    CSPListController *_child;
 }
 
 #pragma mark Initialize
 // Initialize the settings dictionary
 - (id)init {
     if ((self = [super init]) != nil) {
-
-        _settings = [NSMutableDictionary dictionaryWithContentsOfFile:_plistfile] ? : [NSMutableDictionary dictionary];
-        _toggleGroups = @[@"enabled",
-                          @"enabled1"];
+        [self setup];
     }
 
     return self;
+}
+
+- (id)initWithPlistName:(NSString *)plist {
+    if ((self = [super init]) != nil) {
+        [self setup];
+        _specifiers = [self loadSpecifiersFromPlistName:plist target:self];
+    }
+
+    return self;
+}
+
+- (void)setup {
+    _settings = [NSMutableDictionary dictionaryWithContentsOfFile:_plistfile] ? : [NSMutableDictionary dictionary];
+    _toggleGroups = @[@"enabled",
+                      @"enabled1"];
+}
+
+- (void)setblah:(id)sender {
+    if (sender) {
+        PSSpecifier *specifier = (PSSpecifier *)sender;
+        _child = [[CSPListController alloc] initWithPlistName:specifier.identifier];
+        [self.navigationController pushViewController:_child animated:YES];
+    }
 }
 
 // return the specifiers from .plist
@@ -346,7 +367,6 @@
         }
         _fontNames = [[NSSet setWithArray:names].allObjects sortedArrayUsingSelector:@selector(localizedCaseInsensitiveCompare:)];
     }
-    CSAlertLog(@"%@", [[_fontNames valueForKey:@"description"] componentsJoinedByString:@"/n"]);
     return _fontNames;
 }
 

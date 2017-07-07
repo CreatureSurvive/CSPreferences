@@ -5,7 +5,7 @@
  * @Project: motuumLS
  * @Filename: CSPListController.h
  * @Last modified by:   creaturesurvive
- * @Last modified time: 04-07-2017 6:07:15
+ * @Last modified time: 07-07-2017 2:28:31
  * @Copyright: Copyright © 2014-2017 CreatureSurvive
  */
 
@@ -14,4 +14,5 @@
 #include "CSPCommon.h"
 
 @interface CSPListController : PSListController <UITableViewDelegate>
+- (id)initWithPlistName:(NSString *)plist;
 @end
