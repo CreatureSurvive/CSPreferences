@@ -5,7 +5,7 @@
 @Project: motuumLS
 @Filename: Root.plist
 @Last modified by:   creaturesurvive
-@Last modified time: 07-07-2017 1:31:48
+@Last modified time: 08-07-2017 11:08:15
 @Copyright: Copyright © 2014-2017 CreatureSurvive
 -->
 
@@ -188,7 +188,7 @@
 
 		<dict>
 			<key>action</key>
-			<string>setblah:</string>
+			<string>pushToView:</string>
 			<key>cell</key>
 			<string>PSButtonCell</string>
 			<key>id</key>

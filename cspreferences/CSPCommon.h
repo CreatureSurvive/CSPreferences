@@ -5,16 +5,24 @@
  * @Project: motuumLS
  * @Filename: CSPCommon.h
  * @Last modified by:   creaturesurvive
- * @Last modified time: 02-07-2017 5:51:47
+ * @Last modified time: 08-07-2017 7:07:13
  * @Copyright: Copyright © 2014-2017 CreatureSurvive
  */
-
+//TODO seporate public and private
+//TODO define headers within the project rather than using include directory
  #import <Preferences/PSListController.h>
  #import <Preferences/PSSpecifier.h>
  #import <Preferences/PSControlTableCell.h>
  #import <Preferences/PSSwitchTableCell.h>
+ #import <Preferences/PSListItemsController.h>
 
  #import <SafariServices/SafariServices.h>
+
+ #import "CSListItemsController.h"
+ #import "CSListFontsController.h"
+
+#import "CSPListController.h"
+#import "CSPBrowserPreviewController.h"
 
  #define _plistfile (@"/User/Library/Preferences/com.creaturesurvive.fastdel.plist")
  #define _prefsChanged (@"com.creaturesurvive.fastdel.prefschanged")

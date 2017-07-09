@@ -5,18 +5,11 @@
  * @Project: motuumLS
  * @Filename: CSListItemsController.m
  * @Last modified by:   creaturesurvive
- * @Last modified time: 01-07-2017 5:53:17
+ * @Last modified time: 08-07-2017 5:38:42
  * @Copyright: Copyright © 2014-2017 CreatureSurvive
  */
 
-
-#include "CSPCommon.h"
-
-@interface PSListItemsController : PSListController
-@end
-
-@interface CSListItemsController : PSListItemsController
-@end
+#import "CSListItemsController.h"
 
 @implementation CSListItemsController
 
@@ -46,6 +39,23 @@
     [cell.detailTextLabel setAdjustsFontSizeToFitWidth:YES];
     cell.textLabel.textColor = _accentTintColor;
     return cell;
+}
+
+// setup actions for the preview
+- (NSArray<id<UIPreviewActionItem> > *)previewActionItems {
+
+    UIPreviewAction *action1 = [UIPreviewAction actionWithTitle:@"Open" style:UIPreviewActionStyleDefault handler:^(UIPreviewAction *_Nonnull action, UIViewController *_Nonnull previewViewController) {
+        [self.parentController.navigationController pushViewController:self animated:YES];
+    }];
+
+    UIPreviewAction *action2 = [UIPreviewAction actionWithTitle:@"Reset" style:UIPreviewActionStyleDestructive handler:^(UIPreviewAction *_Nonnull action, UIViewController *_Nonnull previewViewController) {
+        [self setValueForSpecifier:self.specifier defaultValue:[self.specifier propertyForKey:PSDefaultValueKey]];
+        [(PSListController *) self.parentController reloadSpecifier:self.specifier];
+    }];
+
+    NSArray *actions = @[action1, action2];
+
+    return actions;
 }
 
 @end
