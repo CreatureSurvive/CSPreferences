@@ -5,7 +5,7 @@
  * @Project: motuumLS
  * @Filename: CSPListController.m
  * @Last modified by:   creaturesurvive
- * @Last modified time: 07-07-2017 1:52:19
+ * @Last modified time: 08-07-2017 11:09:40
  * @Copyright: Copyright © 2014-2017 CreatureSurvive
  */
 
@@ -45,14 +45,6 @@
     _settings = [NSMutableDictionary dictionaryWithContentsOfFile:_plistfile] ? : [NSMutableDictionary dictionary];
     _toggleGroups = @[@"enabled",
                       @"enabled1"];
-}
-
-- (void)setblah:(id)sender {
-    if (sender) {
-        PSSpecifier *specifier = (PSSpecifier *)sender;
-        _child = [[CSPListController alloc] initWithPlistName:specifier.identifier];
-        [self.navigationController pushViewController:_child animated:YES];
-    }
 }
 
 // return the specifiers from .plist
@@ -136,6 +128,82 @@
     self.table.tableHeaderView = header;
 }
 
+#pragma mark - 3D Touch Handler
+// IDEA see if i can subclass 3DTouch rather than implementing it here
+- (BOOL)is3DTouchAvailable {
+    BOOL isAvailable = NO;
+    if ([self.traitCollection respondsToSelector:@selector(forceTouchCapability)]) {
+        isAvailable = (self.traitCollection.forceTouchCapability == UIForceTouchCapabilityAvailable);
+    }
+    return isAvailable;
+}
+
+#pragma mark - UITraitEnvironment Protocol
+
+- (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
+    [super traitCollectionDidChange:previousTraitCollection];
+    // Register for `UIViewControllerPreviewingDelegate` to enable "Peek" and "Pop".
+    if ([self is3DTouchAvailable]) {
+        self.previewingContext = [self registerForPreviewingWithDelegate:self sourceView:self.table];
+    } else if (self.previewingContext) {
+        [self unregisterForPreviewingWithContext:self.previewingContext];
+        self.previewingContext = nil;
+    }
+}
+
+#pragma mark - UIViewControllerPreviewingDelegate
+// TODO document this
+// peek
+- (UIViewController *)previewingContext:(id<UIViewControllerPreviewing>)previewingContext viewControllerForLocation:(CGPoint)location {
+
+    PSSpecifier *specifier = [self specifierAtIndexPath:[self.table indexPathForRowAtPoint:location]];
+    PSListController *vc;
+
+    [previewingContext setSourceRect:[self cachedCellForSpecifier:specifier].frame];
+    switch (specifier.cellType) {
+        case PSButtonCell: {
+            vc = [[CSPListController alloc] initWithPlistName:specifier.identifier];
+        } break;
+
+        case PSLinkListCell: {
+            NSString *detail = [specifier propertyForKey:PSDetailControllerClassKey];
+            if ([detail isEqual:@"CSListItemsController"]) {
+                vc = [[CSListItemsController alloc] init];
+            } else {
+                vc = [[CSListFontsController alloc] init];
+            }
+        } break;
+
+        case PSLinkCell: {
+            NSString *identifier = [specifier propertyForKey:PSIDKey];
+            if ([identifier hasPrefix:@"http"] || [identifier hasPrefix:@"https"]) {
+                // TODO add initializer that take parent as initializer parameter
+                CSPBrowserPreviewController *safari = [[CSPBrowserPreviewController alloc] initWithURL:specifier.identifier];
+                [safari setParentController:self];
+                return safari;
+            } else if ([identifier hasPrefix:@"mailto:"]) {
+                MFMailComposeViewController *mailViewController = [self mailComposeControllerForSpecifier:specifier];
+                return mailViewController;
+            }
+        } break;
+    }
+
+    [vc setParentController:self];
+    [vc setSpecifier:specifier];
+
+    return vc;
+}
+
+// pop
+- (void)previewingContext:(id<UIViewControllerPreviewing>)previewingContext commitViewController:(UIViewController *)viewControllerToCommit {
+    if ([viewControllerToCommit isKindOfClass:[SFSafariViewController class]] ||
+        [viewControllerToCommit isKindOfClass:[MFMailComposeViewController class]]) {
+        [self presentViewController:viewControllerToCommit animated:YES completion:nil];
+    } else {
+        [self.navigationController pushViewController:viewControllerToCommit animated:YES];
+    }
+}
+
 #pragma mark PSListController
 // dismiss keyboard when pressing return key
 - (void)_returnKeyPressed:(id)sender {
@@ -143,6 +211,21 @@
 }
 
 #pragma mark UITableView
+
+- (void)tableView:(UITableView *)tableView willDisplayCell:(UITableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
+
+    CATransform3D transform = CATransform3DIdentity;
+    // transform = CATransform3DTranslate(transform, offsetPositioning.x, offsetPositioning.y, -50.0);
+    transform = CATransform3DScale(transform, 1.2, 1.2, 1);
+    cell.layer.transform = transform;
+    cell.layer.opacity = 0.8;
+
+    [UIView animateWithDuration:0.95 delay:00 usingSpringWithDamping:0.85 initialSpringVelocity:0.8 options:0 animations:^{
+        cell.layer.transform = CATransform3DIdentity;
+        cell.layer.opacity = 1;
+    } completion:nil];
+
+}
 
 // Adjust labels when loading the cell
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -209,6 +292,7 @@
     return plistValue;
 }
 
+// TODO create public methods
 #pragma mark Extentions
 // when setting or reading a value we should check if the changed specifier should alter any other settings or UI
 - (void)checkForUpdatesWithSpecifier:(PSSpecifier *)specifier animated:(BOOL)animated {
@@ -220,6 +304,7 @@
             NSPredicate *filter = [self specifierFilterWithOptions:@{ @"keys": @[[specifier propertyForKey:PSKeyNameKey]], @"types": @[@(PSGroupCell)] } excludeOptions:YES];
             [self setSpecifiers:[group filteredArrayUsingPredicate:filter] enabled:[_settings[key] boolValue]];
         }
+
         // if ([[[self groupSpecifierForGroup:group] propertyForKey:PSIsRadioGroupKey] boolValue]) {
         //     // CSAlertLog(@"Finally a radio group");
         //     NSPredicate *filter = [self specifierFilterWithOptions:@{@"types": @[@(PSSwitchCell)] } excludeOptions:NO];
@@ -283,10 +368,23 @@
     }
 }
 
+// sets the passed value on all the passed specifiers
 - (void)setProperty:(id)property forSpecifiers:(NSArray *)specifiers {
     for (PSSpecifier *specifier in specifiers) {
         [specifier setProperty:property forKey:PSKeyNameKey];
     }
+}
+
+// TODO verify this works
+// reset a specifier value back to default
+- (void)resetSpecifier:(PSSpecifier *)specifier {
+    [specifier setProperty:[specifier propertyForKey:PSDefaultValueKey] forKey:PSValueKey];
+    [self reloadSpecifier:specifier];
+}
+
+// refreshes a cell by calling setCellForRowAtIndexPath
+- (void)refreshCellWithSpecifier:(PSSpecifier *)specifier {
+    [self setCellForRowAtIndexPath:[self indexPathForSpecifier:specifier] enabled:YES];
 }
 
 // returns the PSGroupCell specifier for the given group of array of specifiers
@@ -295,6 +393,7 @@
     return [group filteredArrayUsingPredicate:filter][0];
 }
 
+// TODO move to Utility Class and subclass
 #pragma mark Utility
 
 // opens the specified url in SFSafariViewController
@@ -305,7 +404,25 @@
     [self presentViewController:safari animated:YES completion:nil];
 }
 
+// TODO move to class and subclass
 #pragma mark PSSpecifier Actions
+// openInBrowser action
+- (void)openInBrowser:(PSSpecifier *)sender {
+    [self openURLInBrowser:sender.identifier];
+}
+
+// open controller action
+- (void)pushToView:(PSSpecifier *)sender {
+    _child = [[CSPListController alloc] initWithPlistName:sender.identifier];
+    [self.navigationController pushViewController:_child animated:YES];
+}
+
+// email action
+- (void)email:(PSSpecifier *)sender {
+    MFMailComposeViewController *mailViewController = [self mailComposeControllerForSpecifier:sender];
+    [self presentViewController:mailViewController animated:YES completion:nil];
+}
+
 // respring action
 - (void)respring {
     UIAlertAction *cancelAction, *confirmAction;
@@ -335,25 +452,7 @@
     [self presentViewController:alertController animated:YES completion:nil];
 }
 
-// email action
-- (void)contact {
-    [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"mailto:support@creaturecoding.com?subject=CSPreferences%20v0.0.1"]];
-}
-
-// launch github
-- (void)github {
-    [self openURLInBrowser:@"https://github.com/CreatureSurvive/CSPreferences"];
-}
-
-// launch paypal
-- (void)paypal {
-    [self openURLInBrowser:@"https://paypal.me/creaturesurvive"];
-}
-
-// launch twitter
-- (void)twitter {
-    [self openURLInBrowser:@"https://mobile.twitter.com/creaturesurvive"];
-}
+#pragma mark Misc
 
 - (NSArray *)fontNames {
     if (!_fontNames) {
@@ -368,6 +467,46 @@
         _fontNames = [[NSSet setWithArray:names].allObjects sortedArrayUsingSelector:@selector(localizedCaseInsensitiveCompare:)];
     }
     return _fontNames;
+}
+
+// IDEA add support for attatchments
+- (MFMailComposeViewController *)mailComposeControllerForSpecifier:(PSSpecifier *)specifier {
+    MFMailComposeViewController *mailViewController = [[MFMailComposeViewController alloc] init];
+    mailViewController.mailComposeDelegate = self;
+
+    NSURLComponents *components = [NSURLComponents componentsWithString:specifier.identifier];
+    NSString *toRecipients = components.path;
+
+    for (NSURLQueryItem *param in components.queryItems) {
+        if ([param.name isEqualToString:@"to"]) {
+            toRecipients = [NSString stringWithFormat:@"%@,%@", components.path, param.value];
+        }
+
+        if ([param.name isEqualToString:@"subject"]) {
+            [mailViewController setSubject:param.value];
+        }
+
+        if ([param.name isEqualToString:@"body"]) {
+            [mailViewController setMessageBody:param.value isHTML:NO];
+        }
+
+        if ([param.name isEqualToString:@"cc"]) {
+            [mailViewController setCcRecipients:[param.value componentsSeparatedByString:@","]];
+        }
+
+        if ([param.name isEqualToString:@"bcc"]) {
+            [mailViewController setBccRecipients:[param.value componentsSeparatedByString:@","]];
+        }
+    }
+    [mailViewController setToRecipients:[toRecipients componentsSeparatedByString:@","]];
+
+    return mailViewController;
+}
+
+#pragma mark MFMailComposeViewControllerDelegate
+
+- (void)mailComposeController:(MFMailComposeViewController *)controller didFinishWithResult:(MFMailComposeResult)result error:(NSError *)error {
+    [self dismissViewControllerAnimated:YES completion:NULL];
 }
 
 @end

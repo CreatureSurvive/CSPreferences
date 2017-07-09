@@ -5,18 +5,11 @@
  * @Project: motuumLS
  * @Filename: CSListFontsController.m
  * @Last modified by:   creaturesurvive
- * @Last modified time: 07-07-2017 1:32:14
+ * @Last modified time: 08-07-2017 5:38:19
  * @Copyright: Copyright © 2014-2017 CreatureSurvive
  */
 
-
-#include "CSPCommon.h"
-
-@interface PSListItemsController : PSListController
-@end
-
-@interface CSListFontsController : PSListItemsController
-@end
+#import "CSListFontsController.h"
 
 @implementation CSListFontsController
 
@@ -47,6 +40,34 @@
     cell.textLabel.textColor = _accentTintColor;
     cell.textLabel.font = [UIFont fontWithName:cell.textLabel.text size:20];
     return cell;
+}
+
+// call refreshParentCell when selecting a value
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    [super tableView:tableView didSelectRowAtIndexPath:indexPath];
+    [self refreshParentCell];
+}
+
+// refresh the cell in the parentController
+- (void)refreshParentCell {
+    [(CSPListController *) self.parentController refreshCellWithSpecifier:self.specifier];
+}
+
+// setup actions for the preview
+- (NSArray<id<UIPreviewActionItem> > *)previewActionItems {
+
+    UIPreviewAction *action1 = [UIPreviewAction actionWithTitle:@"Open" style:UIPreviewActionStyleDefault handler:^(UIPreviewAction *_Nonnull action, UIViewController *_Nonnull previewViewController) {
+        [self.parentController.navigationController pushViewController:self animated:YES];
+    }];
+
+    UIPreviewAction *action2 = [UIPreviewAction actionWithTitle:@"Reset" style:UIPreviewActionStyleDestructive handler:^(UIPreviewAction *_Nonnull action, UIViewController *_Nonnull previewViewController) {
+        [self setValueForSpecifier:self.specifier defaultValue:[self.specifier propertyForKey:PSDefaultValueKey]];
+        [self refreshParentCell];
+    }];
+
+    NSArray *actions = @[action1, action2];
+
+    return actions;
 }
 
 @end
