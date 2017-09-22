@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/CreatureSurvive/CSPreferences.png?label=ready&title=Ready)](https://waffle.io/CreatureSurvive/CSPreferences?utm_source=badge)
 # CSPreferences
 
 CSPreferences is a little library I started working on inorder to improve the workflow of working with preference bundles for PreferenceLoader
